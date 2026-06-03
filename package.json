@@ -1,0 +1,21 @@
+
+{
+  "name": "cozy-todo-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "framer-motion": "^12.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.0.0"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
+  }
+}
