@@ -26,6 +26,9 @@ export default function Admin() {
 
       try {
         const response = await api.listUsers();
+        // debug: log raw response
+        // eslint-disable-next-line no-console
+        console.debug('admin.listUsers response:', response);
         const nextUsers = normalizeList(response);
         setUsers(nextUsers);
 
@@ -35,7 +38,11 @@ export default function Admin() {
           setTodos(normalizeTodos(todoResponse));
         }
       } catch (err) {
-        setError(err?.response?.data?.message || 'Could not load admin data.');
+        // eslint-disable-next-line no-console
+        console.error('admin.loadUsers error:', err);
+        const message =
+          err?.response?.data?.message || err?.message || (err?.response && `HTTP ${err.response.status}`) || 'Could not load admin data.';
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -50,9 +57,14 @@ export default function Admin() {
 
     try {
       const response = await api.listUserTodos(user.id);
+      // eslint-disable-next-line no-console
+      console.debug('admin.listUserTodos response:', response);
       setTodos(normalizeTodos(response));
     } catch (err) {
-      setError(err?.response?.data?.message || 'Could not load user todos.');
+      // eslint-disable-next-line no-console
+      console.error('admin.listUserTodos error:', err);
+      const message = err?.response?.data?.message || err?.message || 'Could not load user todos.';
+      setError(message);
     }
   };
 

@@ -186,6 +186,30 @@ const api = {
   listTodos: () => get('/todos'),
   listTrash: () => get('/todos/trash'),
 
+  // Admin endpoints
+  listUsers: async () => {
+    // Try admin endpoint first, fallback to general users endpoint if not available
+    try {
+      return await get('/admin/users');
+    } catch (err) {
+      // if admin endpoint fails (403/404), try /users
+      try {
+        return await get('/users');
+      } catch (err2) {
+        // rethrow original error to surface to caller
+        throw err;
+      }
+    }
+  },
+  listUserTodos: (userId) =>
+    get('/admin/todos').then((resp) => {
+      const items = resp?.data ?? resp?.todos ?? resp?.items ?? resp ?? [];
+      const list = Array.isArray(items) ? items : [];
+      const filtered = list.filter((t) => String(t.user_id) === String(userId));
+
+      return { ...(resp || {}), data: filtered };
+    }),
+
   createTodo: (payload) => post('/todos', payload),
 
   /* 🔥 FIXED HERE */

@@ -63,7 +63,17 @@ function readStoredUser() {
 }
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => safeStorageRead(TOKEN_KEY) || '');
+  const [token, setToken] = useState(() => {
+    const t = safeStorageRead(TOKEN_KEY) || '';
+    if (t) {
+      try {
+        api.setToken(t);
+      } catch (e) {
+        // ignore
+      }
+    }
+    return t;
+  });
   const [user, setUser] = useState(() => readStoredUser());
   const [loading, setLoading] = useState(false);
 

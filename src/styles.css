@@ -861,6 +861,69 @@ h5 {
   gap: 12px;
 }
 
+/* Reduce visual footprint of stacked lists (users, todos) */
+.list-card .stack-list {
+  max-height: 360px;
+  overflow-y: auto;
+  gap: 8px;
+  padding-right: 8px; /* reserve space for hidden scrollbar */
+}
+
+/* Utility to hide visible scrollbars while preserving scroll behavior */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+  width: 0;
+  height: 0;
+}
+
+/* Apply hiding to list cards by default */
+.list-card .stack-list.hide-scrollbar,
+.list-card .stack-list {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.list-card .stack-list::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.stack-list .user-row,
+.stack-list .mini-card {
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.stack-list .user-row {
+  gap: 10px;
+}
+
+@media (max-width: 880px) {
+  .list-card .stack-list {
+    max-height: 48vh;
+  }
+
+  .stack-list {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .list-card .stack-list {
+    max-height: 40vh;
+    padding-right: 6px;
+  }
+
+  .stack-list .user-row,
+  .stack-list .mini-card {
+    padding: 8px;
+  }
+}
+
 .todo-card,
 .mini-card,
 .user-row {
