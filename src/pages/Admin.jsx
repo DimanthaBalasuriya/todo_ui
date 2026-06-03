@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 function renderEmail(email) {
   const raw = email || '';
@@ -39,6 +40,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [pendingDelete, setPendingDelete] = useState(null);
+  const { user: me } = useAuth();
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -51,11 +53,22 @@ export default function Admin() {
         // eslint-disable-next-line no-console
         console.debug('admin.listUsers response:', response);
         const nextUsers = normalizeList(response);
-        setUsers(nextUsers);
 
-        if (nextUsers.length) {
-          setSelectedUser(nextUsers[0]);
-          const todoResponse = await api.listUserTodos(nextUsers[0].id);
+        // If the current user is an admin, hide their own account from the list
+        const isAdmin = Boolean(me && (String(me.is_admin) === '1' || me.is_admin === true || (me.role && String(me.role).toLowerCase() === 'admin')));
+
+        const visible = Array.isArray(nextUsers)
+          ? nextUsers.filter((u) => {
+              if (!isAdmin) return true;
+              return String(u.id) !== String(me?.id);
+            })
+          : nextUsers;
+
+        setUsers(visible);
+
+        if (visible.length) {
+          setSelectedUser(visible[0]);
+          const todoResponse = await api.listUserTodos(visible[0].id);
           setTodos(normalizeTodos(todoResponse));
         }
       } catch (err) {
@@ -70,7 +83,7 @@ export default function Admin() {
     };
 
     loadUsers();
-  }, []);
+  }, [me?.id, me?.role, me?.is_admin]);
 
   const selectUser = async (user) => {
     setSelectedUser(user);
