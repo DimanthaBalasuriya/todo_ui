@@ -2,6 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 
+function renderEmail(email) {
+  const raw = email || '';
+  if (!raw) return 'No email available';
+
+  const MAX = 28;
+  if (raw.length > MAX) {
+    const short = `${raw.slice(0, MAX - 1)}…`;
+    return (
+      <>
+        <span className="email-short" aria-hidden>
+          {short}
+        </span>
+        <span className="overflow-dot" title={raw} aria-hidden />
+      </>
+    );
+  }
+
+  return raw;
+}
+
 function normalizeList(response) {
   if (Array.isArray(response)) return response;
   return response?.data ?? response?.users ?? response?.items ?? [];
@@ -18,6 +38,7 @@ export default function Admin() {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -68,6 +89,46 @@ export default function Admin() {
     }
   };
 
+  const performDeleteUser = async (user) => {
+    setError('');
+
+    try {
+      await api.deleteUser(user.id);
+
+      setUsers((prev) => {
+        const remaining = prev.filter((u) => String(u.id) !== String(user.id));
+
+        // if deleted user was selected, pick next or clear
+        setSelectedUser((prevSelected) => {
+          if (!prevSelected) return null;
+          if (String(prevSelected.id) === String(user.id)) {
+            const next = remaining.length ? remaining[0] : null;
+            if (next) {
+              // load todos for next (fire-and-forget)
+              selectUser(next);
+              return next;
+            }
+            setTodos([]);
+            return null;
+          }
+          return prevSelected;
+        });
+
+        return remaining;
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('admin.deleteUser error:', err);
+      const message = err?.response?.data?.message || err?.message || 'Could not delete user.';
+      setError(message);
+    } finally {
+      setPendingDelete(null);
+    }
+  };
+
+  const openConfirm = (user) => setPendingDelete(user);
+  const cancelConfirm = () => setPendingDelete(null);
+
   return (
     <div className="page-stack">
       <section className="hero card">
@@ -93,20 +154,48 @@ export default function Admin() {
           {error ? <p className="form-error">{error}</p> : null}
 
           {!loading && users.length ? (
-            <div className="stack-list">
+            <div className="stack-list hide-scrollbar">
               {users.map((user) => (
-                <button
+                <div
                   key={user.id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   className={`user-row ${selectedUser?.id === user.id ? 'active' : ''}`}
                   onClick={() => selectUser(user)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      selectUser(user);
+                    }
+                  }}
                 >
                   <div>
                     <strong>{user.name ?? user.username ?? 'Unnamed user'}</strong>
-                    <p>{user.email ?? 'No email available'}</p>
+                    <p title={user.email ?? 'No email available'}>{renderEmail(user.email)}</p>
                   </div>
-                  <span className="status-pill">{user.role ?? (user.is_admin ? 'admin' : 'user')}</span>
-                </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {/* <span className="status-pill">{user.role ?? (user.is_admin ? 'admin' : 'user')}</span> */}
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      className="btn btn-danger"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openConfirm(user);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openConfirm(user);
+                        }
+                      }}
+                      style={{ padding: '6px 10px', borderRadius: 12 }}
+                    >
+                      Delete
+                    </span>
+                  </div>
+                </div>
               ))}
             </div>
           ) : null}
@@ -140,6 +229,28 @@ export default function Admin() {
           ) : null}
         </motion.div>
       </section>
+      {pendingDelete ? (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal">
+            <h3>Confirm delete</h3>
+            <p>
+              Are you sure you want to permanently delete the account for <strong>{pendingDelete.name || pendingDelete.email || pendingDelete.username}</strong>?
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 12 }}>
+              <button type="button" className="btn btn-ghost" onClick={cancelConfirm}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={() => performDeleteUser(pendingDelete)}
+              >
+                Delete account
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -218,6 +218,18 @@ const api = {
   deleteTodo: (id) => destroy(`/todos/${id}`),
   restoreTodo: (id) => post(`/todos/${id}/restore`),
   forceDeleteTodo: (id) => destroy(`/todos/${id}/force`),
+  // Delete a user (try admin endpoint first, fallback to general users endpoint)
+  deleteUser: async (id) => {
+    try {
+      return await destroy(`/admin/users/${id}`);
+    } catch (err) {
+      try {
+        return await destroy(`/users/${id}`);
+      } catch (err2) {
+        throw err;
+      }
+    }
+  },
 };
 
 export default api;

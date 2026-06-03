@@ -480,6 +480,48 @@ h5 {
     margin-right: 0;
     padding-right: 12px;
   }
+
+  /* Small indicator shown when email is truncated */
+  .overflow-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-left: 8px;
+    border-radius: 50%;
+    background: var(--primary-deep);
+    vertical-align: middle;
+  }
+
+  .email-short {
+    vertical-align: middle;
+  }
+
+  /* Modal styles for confirmation dialog */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 24, 40, 0.48);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+  }
+  .modal {
+    background: #fff;
+    color: var(--text);
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(16, 24, 40, 0.12);
+    max-width: 520px;
+    width: 92%;
+  }
+  .modal h3 {
+    margin: 0 0 8px 0;
+  }
+  .modal p {
+    margin: 0;
+    color: var(--muted);
+  }
 }
 
 .stat-card {
@@ -715,6 +757,7 @@ h5 {
     width: 96px;
     height: 64px;
   }
+
   .layout-grid {
     grid-template-columns: 1fr;
   }
@@ -857,25 +900,33 @@ h5 {
 }
 
 .stack-list {
-  display: grid;
-  gap: 12px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* Reduce visual footprint of stacked lists (users, todos) */
 .list-card .stack-list {
-  max-height: 360px;
-  overflow-y: auto;
-  gap: 8px;
-  padding-right: 8px; /* reserve space for hidden scrollbar */
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+  /* reserve space for hidden scrollbar */
 }
 
 /* Utility to hide visible scrollbars while preserving scroll behavior */
 .hide-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
+
 .hide-scrollbar::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
+  display: none;
+  /* Safari and Chrome */
   width: 0;
   height: 0;
 }
@@ -886,6 +937,7 @@ h5 {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .list-card .stack-list::-webkit-scrollbar {
   display: none;
   width: 0;
